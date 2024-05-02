@@ -19,14 +19,69 @@ jobs:
         with:
           version: latest
 
+      - name: Build application
+        run: |
+          pnpm install
+          pnpm build
+          
+      - name: Archive artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ env.BUILD_ARTIFACT_NAME }}
+          path: dist/
+
+      - name: Run static analysis and tests
+        if: ${{ github.event_name == 'pull_request' || github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        run: |
+          # Run static analysis (linter)
+          # Replace the following command with your actual linter command
+          echo "Running linter..."
+          # Run tests
+          # Replace the following command with your actual test command
+          echo "Running tests..."
+
+
   deploy-qa:
     needs: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - name: Deploy to QA
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          # Replace the following command with your deployment command for QA environment
+          echo "Deploying to QA..."
+
 
   deploy-prod:
     needs: deploy-qa
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
+      - name: Deploy to Prod
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          # Replace the following command with your deployment command for Prod environment
+          echo "Deploying to Prod..."
+      
+  cleanup-artifacts:
+    runs-on: ubuntu-latest
+    needs: [deploy-prod, deploy-qa]
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Cleanup old artifacts
+        run: |
+          # Determine retention period for artifacts based on branch
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            retention_days=7
+          else
+            retention_days=1
+          fi
+      
+                # Delete artifacts older than retention period
+                echo "Cleaning up artifacts older than $retention_days days..."
+      
+
+
+      
